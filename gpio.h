@@ -1,2 +1,2 @@
 #include <pigpio.h>
-void gpiostart()
+void gpiostart();
