@@ -2,4 +2,5 @@
 
 gpiostart();
 gpioSetMode(17,PI_OUTPUT);
-gpioWrite(17, 1);
+gpioServo(17, 1500);
+gpioServo(17,1900);
