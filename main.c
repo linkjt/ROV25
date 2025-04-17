@@ -42,36 +42,18 @@ gpioSetMode(ROVY,PI_OUTPUT);
 gpioSetMode(ARMPIN1,PI_OUTPUT);
 gpioSetMode(ARMPIN2,PI_OUTPUT);
 while(1=1){
-
-// Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
-gpioServo(ROVX, 1500);
-gpioServo(ROVY, 1500);
-if(logi.Dpadup){
-  gpioServo(ROVUP, 1700);
-} else{
-gpioServo(ROVUP, 1500);
-}
-if(logi.Dpaddown){
-  gpioServo(ROVDOWN, 1700);
-}else{
-  gpioServo(ROVDOWN, 1500);
-}
-if(logi.leftjoyX!=0){
-  gpioServo(ROVX, 1500+logi.leftjoyX);
-}else{
-  gpioServo(ROVX, 1500);
-}
-if(logi.leftjoyY!=0){
-  gpioServo(ROVY, 1500+logi.leftjoyY);
-}else{
-  gpioServo(ROVY, 1500);
-}
-
 //fast and slow mode
 if((fastslowmode & logi.Startbutton)||(!fastslowmode & logi.Startbutton)){
 fastslowmode = !fastslowmode;
 logi.Startbutton = false;
 }
+
+// Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
+
+gpioServo(ROVUP, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
+gpioServo(ROVX, 1500+(logi.leftjoyX)*(1+fastslowmode));
+gpioServo(ROVY, 1500+(logi.leftjoyY)*(1+fastslowmode));
+
 
 //fidle around till controls are good
 gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+fastslowmode));
