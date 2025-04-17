@@ -9,6 +9,26 @@
 #define ARMPIN1 10
 #define ARMPIN2 11
 
+typedef struct{
+int rightjoyX;
+int rightjoyY;
+int leftjoyX;
+int leftjoyY;
+int lefttrigger;
+int righttrigger;
+bool Ybutton;
+bool Xbutton;
+bool Bbutton;
+bool Abutton;
+bool Backbutton;
+bool Startbutton;
+bool Modebutton;
+bool Dpadup;
+bool Dpadleft;
+bool Dpadright;
+bool Dpaddown;
+} controller;
+
 controller logi; // get this data from somewhere using the control data thing I made
 
 gpiostart();
