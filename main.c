@@ -29,6 +29,9 @@ bool Dpadright;
 bool Dpaddown;
 } controller;
 
+bool fastslowmode = false;
+
+
 controller logi; // get this data from somewhere using the control data thing I made
 
 gpiostart();
@@ -63,9 +66,16 @@ if(logi.leftjoyY!=0){
 }else{
   gpioServo(ROVY, 1500);
 }
+
+//fast and slow mode
+if((fastslowmode & logi.Startbutton)||(!fastslowmode & logi.Startbutton)){
+fastslowmode = !fastslowmode;
+logi.Startbutton = false;
+}
+
 //fidle around till controls are good
-gpioServo(ARMPIN1, 1500+logi.rightjoyY*10);
+gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+fastslowmode));
 //fidle around till controls are good
-gpioServo(ARMPIN2, 1500+logi.leftjoyY*10);
+gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+fastslowmode));
 
 
