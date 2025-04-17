@@ -1,9 +1,16 @@
 #include "gpio.h"
 #include "
 // defined pins, change this later
+
+
+//MAKE IT FOR ROV X and Z 1 and two to be able to move on both axis, thus finishing all movement
+// look at transfer ethernet code
+
 #define ROVUP 1
 #define ROVDOWN 2
 #define ROVX 3
+#define ROVX2 3
+
 #define ROVY 4
 
 #define ARMPIN1 10
