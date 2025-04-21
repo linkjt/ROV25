@@ -65,50 +65,71 @@ gpioSetMode(ARMPIN2,PI_OUTPUT);
 
 gpioSetMode(HANDCODE,PI_OUTPUT);
 bool servomove(controllor logi);
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
+#include <errno.h>
+
+#define UART_DEVICE "/dev/ttyS0" // Or /dev/ttyAMA0 depending on your Pi configuration
+#define BAUD_RATE B115200       // Must match the Arduino's baud rate
 
 int main() {
-    int sockfd;
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t client_len = sizeof(client_addr);
-    char buffer[BUFSIZE];
-    ssize_t recv_len;
+    int uart_fd;
+    struct termios options;
+    char buffer[256];
+    int bytes_read;
 
-    // Create UDP socket
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
+    // Open the UART device
+    uart_fd = open(UART_DEVICE, O_RDWR | O_NOCTTY);
+    if (uart_fd < 0) {
+        perror("Error opening UART");
+        return -1;
     }
 
-    // Configure server address
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("YOUR_RASPBERRY_PI_IP"); // Use your Pi's static IP
-    server_addr.sin_port = htons(SERVER_PORT);
-
-    // Bind the socket to the server address
-    if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("bind failed");
-        close(sockfd);
-        exit(EXIT_FAILURE);
+    // Get the current terminal settings
+    if (tcgetattr(uart_fd, &options) < 0) {
+        perror("Error getting termios settings");
+        close(uart_fd);
+        return -1;
     }
 
-    printf("Listening for UDP packets on %s:%d\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
+    // Set the baud rate
+    options.c_cflag = BAUD_RATE | CS8 | CLOCAL | CREAD;
+    options.c_iflag = 0;
+    options.c_oflag = 0;
+    options.c_lflag = 0;
+
+    // Apply the new settings
+    tcflush(uart_fd, TCIFLUSH);
+    if (tcsetattr(uart_fd, TCSANOW, &options) < 0) {
+        perror("Error setting termios settings");
+        close(uart_fd);
+        return -1;
+    }
+
+    printf("Listening for data on %s at %d baud...\n", UART_DEVICE, BAUD_RATE);
 
     while (1) {
-        recv_len = recvfrom(sockfd, buffer, BUFSIZE - 1, 0, (struct sockaddr *)&client_addr, &client_len);
-        if (recv_len < 0) {
-            perror("recvfrom failed");
-            continue;
+        // Read data from the UART
+        bytes_read = read(uart_fd, buffer, sizeof(buffer) - 1);
+        if (bytes_read > 0) {
+            buffer[bytes_read] = '\0'; // Null-terminate the received data
+            printf("Received: %s", buffer);
+            fflush(stdout); // Ensure output is printed immediately
+        } else if (bytes_read < 0) {
+            perror("Error reading from UART");
+            break;
         }
-
-        buffer[recv_len] = '\0'; // Null-terminate the received data
-        printf("Received message from %s:%d: %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), buffer);
-        fastmode = servomove(logi,fastmode);
+        usleep(100); // Small delay to avoid busy-waiting
     }
 
-    close(sockfd);
+    close(uart_fd);
     return 0;
 }
+
 bool servomove(controller logi, bool fastmode){
 //fast and slow mode
 if((fastslowmode & logi.Startbutton)||(!fastslowmode & logi.Startbutton)){
