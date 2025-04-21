@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strbool.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -102,6 +103,7 @@ int main() {
     printf("Listening for data on %s at %d baud...\n", UART_DEVICE, BAUD_RATE);
 
     int buffer_index =0;
+    int i;
     while (1) {
         // read data from arduino
         bytes_read = read(uart_fd, buffer + buffer_index, sizeof(buffer) - 1 - buffer_index);
@@ -113,11 +115,6 @@ while (1) {
   char *newline_pos = strchr(buffer, '\n');
   if (newline_pos != NULL) {
     *newline_pos = '\0';
-
-    struct SensorData receivedData;
-    char *token;
-    char *rest = buffer;
-    int i = 0;
 
     while ((token = strtok_r(rest, ",", &rest)) != NULL) {
       if (i == 0) {
@@ -149,7 +146,6 @@ while (1) {
     memmove(buffer, newline_pos + 1, remaining_len);
     buffer[remaining_len] = '\0';
   }
-  // ... (rest of your receiving loop) ...
 }
 
         //error handeling
