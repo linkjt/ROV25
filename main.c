@@ -5,14 +5,13 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <errno.h>
 
-#define BUFSIZE 1024
-#define SERVER_PORT 5005
+#define UART_DEVICE "/dev/ttyS0"
+#define BAUD_RATE B115200       // Must match the Arduino's baud rate
 // defined pins, change this later
-
-
-//MAKE IT FOR ROV X and Z 1 and two to be able to move on both axis, thus finishing all movement
-// look at transfer ethernet code
 
 #define ROVUP1 1
 #define ROVUP2 1
@@ -65,16 +64,6 @@ gpioSetMode(ARMPIN2,PI_OUTPUT);
 
 gpioSetMode(HANDCODE,PI_OUTPUT);
 bool servomove(controllor logi);
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <termios.h>
-#include <errno.h>
-
-#define UART_DEVICE "/dev/ttyS0" // Or /dev/ttyAMA0 depending on your Pi configuration
-#define BAUD_RATE B115200       // Must match the Arduino's baud rate
 
 int main() {
     int uart_fd;
@@ -96,7 +85,7 @@ int main() {
         return -1;
     }
 
-    // Set the baud rate
+    // Set the baud rate, make sure ts same as arduino
     options.c_cflag = BAUD_RATE | CS8 | CLOCAL | CREAD;
     options.c_iflag = 0;
     options.c_oflag = 0;
@@ -112,13 +101,18 @@ int main() {
 
     printf("Listening for data on %s at %d baud...\n", UART_DEVICE, BAUD_RATE);
 
+    int buffer_index =0;
     while (1) {
-        // Read data from the UART
-        bytes_read = read(uart_fd, buffer, sizeof(buffer) - 1);
-        if (bytes_read > 0) {
-            buffer[bytes_read] = '\0'; // Null-terminate the received data
-            printf("Received: %s", buffer);
-            fflush(stdout); // Ensure output is printed immediately
+        // read data from arduino
+        bytes_read = read(uart_fd, buffer + buffer_index, sizeof(buffer) - 1 - buffer_index);
+        //ts is if we actually read stuff
+        if (bytes_read >= 0) {
+            buffer_index += bytes_read;
+            buffer[buffer_index] = '\0' //set up so non NULL
+
+            char *newline_pos = strchr(buffer,'\n');
+        ////// ADD HERE
+        //error handeling
         } else if (bytes_read < 0) {
             perror("Error reading from UART");
             break;
