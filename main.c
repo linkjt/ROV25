@@ -1,5 +1,13 @@
 #include "gpio.h"
-#include "
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#define BUFSIZE 1024
+#define SERVER_PORT 5005
 // defined pins, change this later
 
 
@@ -66,15 +74,6 @@ gpioServo(ROVY, 1500+(logi.leftjoyY)*(1+fastslowmode));
 gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+fastslowmode));
 //fidle around till controls are good
 gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+fastslowmode));
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-
-#define BUFSIZE 1024
-#define SERVER_PORT 5005
 
 int main() {
     int sockfd;
