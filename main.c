@@ -66,5 +66,57 @@ gpioServo(ROVY, 1500+(logi.leftjoyY)*(1+fastslowmode));
 gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+fastslowmode));
 //fidle around till controls are good
 gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+fastslowmode));
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#define BUFSIZE 1024
+#define SERVER_PORT 5005
+
+int main() {
+    int sockfd;
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t client_len = sizeof(client_addr);
+    char buffer[BUFSIZE];
+    ssize_t recv_len;
+
+    // Create UDP socket
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Configure server address
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = inet_addr("YOUR_RASPBERRY_PI_IP"); // Use your Pi's static IP
+    server_addr.sin_port = htons(SERVER_PORT);
+
+    // Bind the socket to the server address
+    if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("bind failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Listening for UDP packets on %s:%d\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
+
+    while (1) {
+        recv_len = recvfrom(sockfd, buffer, BUFSIZE - 1, 0, (struct sockaddr *)&client_addr, &client_len);
+        if (recv_len < 0) {
+            perror("recvfrom failed");
+            continue;
+        }
+
+        buffer[recv_len] = '\0'; // Null-terminate the received data
+        printf("Received message from %s:%d: %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), buffer);
+    }
+
+    close(sockfd);
+    return 0;
+}
 
 
