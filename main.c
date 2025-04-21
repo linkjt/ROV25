@@ -14,15 +14,17 @@
 //MAKE IT FOR ROV X and Z 1 and two to be able to move on both axis, thus finishing all movement
 // look at transfer ethernet code
 
-#define ROVUP 1
-#define ROVDOWN 2
-#define ROVX 3
-#define ROVX2 3
-
-#define ROVY 4
+#define ROVUP1 1
+#define ROVUP2 1
+#define ROVM1 2
+#define ROVM2 3
+#define ROVM3 4
+#define ROVM4 5
 
 #define ARMPIN1 10
 #define ARMPIN2 11
+
+#define HANDCODE 12
 
 typedef struct{
 int rightjoyX;
@@ -49,12 +51,19 @@ bool Dpaddown;
 controller logi; // get this data from somewhere using the control data thing I made
 
 gpiostart();
-gpioSetMode(ROVUP,PI_OUTPUT);
-gpioSetMode(ROVDOWN,PI_OUTPUT);
-gpioSetMode(ROVX,PI_OUTPUT);
-gpioSetMode(ROVY,PI_OUTPUT);
+gpioSetMode(ROVUP1,PI_OUTPUT);
+gpioSetMode(ROVUP2,PI_OUTPUT);
+
+gpioSetMode(ROVM1,PI_OUTPUT);
+gpioSetMode(ROVM2,PI_OUTPUT);
+gpioSetMode(ROVM3,PI_OUTPUT);
+gpioSetMode(ROVM4,PI_OUTPUT);
+
+
 gpioSetMode(ARMPIN1,PI_OUTPUT);
 gpioSetMode(ARMPIN2,PI_OUTPUT);
+
+gpioSetMode(HANDCODE,PI_OUTPUT);
 bool servomove(controllor logi);
 
 int main() {
@@ -109,11 +118,20 @@ logi.Startbutton = false;
 
 // Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
 
-gpioServo(ROVUP, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
-gpioServo(ROVX, 1500+(logi.leftjoyX)*(1+fastslowmode));
-gpioServo(ROVY, 1500+(logi.leftjoyY)*(1+fastslowmode));
+gpioServo(ROVUP1, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
+gpioServo(ROVUP2, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
+//X movement
+gpioServo(ROVM1, 1500+(logi.leftjoyX)*(1+fastslowmode));
+gpioServo(ROVM2, 1500+(logi.leftjoyX)*(1+fastslowmode));
+gpioServo(ROVM3, 1500-(logi.leftjoyX)*(1+fastslowmode));
+gpioServo(ROVM4, 1500-(logi.leftjoyX)*(1+fastslowmode));
 
+gpioServo(ROVM1, 1500+(logi.leftjoyY)*(1+fastslowmode));
+gpioServo(ROVM3, 1500+(logi.leftjoyY)*(1+fastslowmode));
+gpioServo(ROVM2, 1500-(logi.leftjoyY)*(1+fastslowmode));
+gpioServo(ROVM4, 1500-(logi.leftjoyY)*(1+fastslowmode));
 
+gpioServo(HANDCODE, 1500+200*(logi.lefttrigger)*(1+fastslowmode)-200*(logi.righttrigger)*(1+fastslowmode));
 //fidle around till controls are good
 gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+fastslowmode));
 //fidle around till controls are good
