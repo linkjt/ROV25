@@ -44,7 +44,6 @@ bool Dpadright;
 bool Dpaddown;
 } controller;
 
-bool fastslowmode = false;
 
 
 controller logi; // get this data from somewhere using the control data thing I made
@@ -56,24 +55,7 @@ gpioSetMode(ROVX,PI_OUTPUT);
 gpioSetMode(ROVY,PI_OUTPUT);
 gpioSetMode(ARMPIN1,PI_OUTPUT);
 gpioSetMode(ARMPIN2,PI_OUTPUT);
-while(1=1){
-//fast and slow mode
-if((fastslowmode & logi.Startbutton)||(!fastslowmode & logi.Startbutton)){
-fastslowmode = !fastslowmode;
-logi.Startbutton = false;
-}
-
-// Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
-
-gpioServo(ROVUP, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
-gpioServo(ROVX, 1500+(logi.leftjoyX)*(1+fastslowmode));
-gpioServo(ROVY, 1500+(logi.leftjoyY)*(1+fastslowmode));
-
-
-//fidle around till controls are good
-gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+fastslowmode));
-//fidle around till controls are good
-gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+fastslowmode));
+bool servomove(controllor logi);
 
 int main() {
     int sockfd;
@@ -112,10 +94,30 @@ int main() {
 
         buffer[recv_len] = '\0'; // Null-terminate the received data
         printf("Received message from %s:%d: %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), buffer);
+        fastmode = servomove(logi,fastmode);
     }
 
     close(sockfd);
     return 0;
+}
+bool servomove(controller logi, bool fastmode){
+//fast and slow mode
+if((fastslowmode & logi.Startbutton)||(!fastslowmode & logi.Startbutton)){
+fastslowmode = !fastslowmode;
+logi.Startbutton = false;
+}
+
+// Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
+
+gpioServo(ROVUP, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
+gpioServo(ROVX, 1500+(logi.leftjoyX)*(1+fastslowmode));
+gpioServo(ROVY, 1500+(logi.leftjoyY)*(1+fastslowmode));
+
+
+//fidle around till controls are good
+gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+fastslowmode));
+//fidle around till controls are good
+gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+fastslowmode));
 }
 
 
