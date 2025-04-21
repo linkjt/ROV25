@@ -109,9 +109,49 @@ int main() {
         if (bytes_read >= 0) {
             buffer_index += bytes_read;
             buffer[buffer_index] = '\0' //set up so non NULL
+while (1) {
+  char *newline_pos = strchr(buffer, '\n');
+  if (newline_pos != NULL) {
+    *newline_pos = '\0';
 
-            char *newline_pos = strchr(buffer,'\n');
-        ////// ADD HERE
+    struct SensorData receivedData;
+    char *token;
+    char *rest = buffer;
+    int i = 0;
+
+    while ((token = strtok_r(rest, ",", &rest)) != NULL) {
+      if (i == 0) {
+        receivedData.id = atoi(token);
+      } else if (i == 1) {
+        receivedData.temperature = atoi(token);
+      } else if (i == 2) {
+        if (strcmp(token, "true") == 0 || strcmp(token, "1") == 0) {
+          receivedData.alert = true;
+        } else if (strcmp(token, "false") == 0 || strcmp(token, "0") == 0) {
+          receivedData.alert = false;
+        } else {
+          fprintf(stderr, "Error parsing boolean: %s\n", token);
+        }
+      }
+      i++;
+    }
+
+    if (i == 3) {
+      printf("Received: ID=%d, Temperature=%d, Alert=%s\n",
+             receivedData.id, receivedData.temperature, receivedData.alert ? "true" : "false");
+      // Process receivedData
+    } else {
+      fprintf(stderr, "Error: Incorrect number of elements received: %s\n", buffer);
+    }
+
+    // Handle remaining data in the buffer
+    int remaining_len = strlen(newline_pos + 1);
+    memmove(buffer, newline_pos + 1, remaining_len);
+    buffer[remaining_len] = '\0';
+  }
+  // ... (rest of your receiving loop) ...
+}
+
         //error handeling
         } else if (bytes_read < 0) {
             perror("Error reading from UART");
