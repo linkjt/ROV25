@@ -14,12 +14,12 @@
 #define BAUD_RATE B115200
 #define MAX_BUFFER_SIZE 512 // Increased buffer size to accommodate more data
 
-#define ROVUP1 1
-#define ROVUP2 1
-#define ROVM1 2
-#define ROVM2 3
-#define ROVM3 4
-#define ROVM4 5
+#define ROVUP1 0
+#define ROVUP2 2
+#define ROVM1 24
+#define ROVM2 25
+#define ROVM3 21
+#define ROVM4 22
 
 #define ARMPIN1 10
 #define ARMPIN2 11
