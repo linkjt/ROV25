@@ -1,4 +1,4 @@
-#include "gpio.h" // Keep if you're using pigpio for other things
+#include "gpio.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +46,7 @@ typedef struct {
     bool Dpaddown;
 } controller;
 
-controller logi; // Global variable to store controller data
+controller logi;
 
 gpiostart();
 gpioSetMode(ROVUP1,PI_OUTPUT);
@@ -77,7 +77,6 @@ int main() {
         return -1;
     }
 
-    // Get the current terminal settings
     if (tcgetattr(uart_fd, &options) < 0) {
         perror("Error getting termios settings");
         close(uart_fd);
@@ -90,7 +89,6 @@ int main() {
     options.c_oflag = 0;
     options.c_lflag = 0;
 
-    // Apply the new settings
     tcflush(uart_fd, TCIFLUSH);
     if (tcsetattr(uart_fd, TCSANOW, &options) < 0) {
         perror("Error setting termios settings");
@@ -144,7 +142,7 @@ int main() {
                 }
 
                 if (!parse_error && i == 17) {
-                    logi = receivedLogi; // Save the received data to the global logi structure
+                    logi = receivedLogi; 
                     printf("Received Controller Data:\n");
                     printf("  RX: %d, RY: %d, LX: %d, LY: %d\n", logi.rightjoyX, logi.rightjoyY, logi.leftjoyX, logi.leftjoyY);
                     printf("  LT: %d, RT: %d\n", logi.lefttrigger, logi.righttrigger);
@@ -155,7 +153,6 @@ int main() {
                     fprintf(stderr, "Error: Incorrect number of controller elements received: %s (%d received, expected 17)\n", buffer, i);
                 }
 
-                // Move the remaining part of the buffer
                 int remaining_len = strlen(newline_pos + 1);
                 memmove(buffer, newline_pos + 1, remaining_len);
                 buffer_index = remaining_len;
@@ -184,15 +181,10 @@ logi.Startbutton = false;
 gpioServo(ROVUP1, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
 gpioServo(ROVUP2, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
 //X movement
-gpioServo(ROVM1, 1500+(logi.leftjoyX)*(1+fastslowmode));
-gpioServo(ROVM2, 1500+(logi.leftjoyX)*(1+fastslowmode));
-gpioServo(ROVM3, 1500-(logi.leftjoyX)*(1+fastslowmode));
-gpioServo(ROVM4, 1500-(logi.leftjoyX)*(1+fastslowmode));
-
-gpioServo(ROVM1, 1500+(logi.leftjoyY)*(1+fastslowmode));
-gpioServo(ROVM3, 1500+(logi.leftjoyY)*(1+fastslowmode));
-gpioServo(ROVM2, 1500-(logi.leftjoyY)*(1+fastslowmode));
-gpioServo(ROVM4, 1500-(logi.leftjoyY)*(1+fastslowmode));
+gpioServo(ROVM1, 1500+100*(logi.leftjoyX)*(1+fastslowmode)+100*(logi.leftjoyY)*(1+fastslowmode)+50*(logi.Ybutton)-50*(logi.Abutton));
+gpioServo(ROVM2, 1500+100*(logi.leftjoyX)*(1+fastslowmode)-100*(logi.leftjoyY)*(1+fastslowmode)+50*(logi.Ybutton)-50*(logi.Abutton));
+gpioServo(ROVM3, 1500-100*(logi.leftjoyX)*(1+fastslowmode)+100*(logi.leftjoyY)*(1+fastslowmode)+50*(logi.Ybutton)-50*(logi.Abutton));
+gpioServo(ROVM4, 1500-100*(logi.leftjoyX)*(1+fastslowmode)-100*(logi.leftjoyY)*(1+fastslowmode)+50*(logi.Ybutton)-50*(logi.Abutton));
 
 gpioServo(HANDCODE, 1500+200*(logi.lefttrigger)*(1+fastslowmode)-200*(logi.righttrigger)*(1+fastslowmode));
 //fidle around till controls are good
