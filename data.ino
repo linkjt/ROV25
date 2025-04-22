@@ -59,7 +59,6 @@ void loop() {
     logi.Startbutton = joystick.getButton(8);
     
     // I DONT KNOW WHAT THIS IS, USE getRawData to find what the button is logi.Modebutton = joystick.getButton(8);
-    Serial.println(joystick.getRawData());
 
     logi.Dpadup = joystick.getHat(0);
     logi.Dpaddown = joystick.getHat(4);
