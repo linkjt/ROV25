@@ -1,37 +1,72 @@
-#include <SPI.h>
-#include <Ethernet.h>
-#include <EthernetUdp.h>
+#include <KeyboardController.h>
+#include <MouseController.h>
+#include <Usb.h>
+#include <address.h>
+#include <adk.h>
+#include <confdescparser.h>
+#include <hid.h>
+#include <hidboot.h>
+#include <hidusagestr.h>
+#include <parsetools.h>
+#include <usb_ch9.h>
 
-// Network configuration (adjust as needed)
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192, 168, 1, 177); // Arduino's IP
-IPAddress serverIP(192, 168, 1, 100); // Raspberry Pi's IP
-unsigned int serverPort = 5005;
-unsigned int localPort = 8888; // Port Arduino will listen on (optional for sending)
+#include <USBHost.h>
 
-EthernetUDP udp;
-char packetBuffer[UDP_TX_PACKET_MAX_SIZE]; // buffer to hold incoming packets
+USBHost myusb;
+HIDJoystick joystick(myusb);
+typedef struct{
+int rightjoyX;
+int rightjoyY;
+int leftjoyX;
+int leftjoyY;
+int lefttrigger;
+int righttrigger;
+bool Ybutton;
+bool Xbutton;
+bool Bbutton;
+bool Abutton;
+bool Backbutton;
+bool Startbutton;
+bool Modebutton;
+bool Dpadup;
+bool Dpadleft;
+bool Dpadright;
+bool Dpaddown;
+} controller;
 
+controller logi
 void setup() {
   Serial.begin(115200);
-  Ethernet.begin(mac, ip);
-  udp.begin(localPort);
-  Serial.print("My IP address: ");
-  Serial.println(Ethernet.localIP());
+  myusb.begin();
+  Serial.println("Waiting for joystick...");
 }
 
 void loop() {
-  // Example: Sending a sensor reading every second
-  static unsigned long lastTime = 0;
-  if (millis() - lastTime > 1000) {
-    lastTime = millis();
-    int sensorValue = analogRead(A0);
-    String data = "Sensor Value: " + String(sensorValue);
-    udp.beginPacket(serverIP, serverPort);
-    udp.write(data.c_str());
-    udp.endPacket();
-    Serial.print("Sent: ");
-    Serial.println(data);
+  myusb.Task();
+
+  if (joystick.available()) {
+    logi.leftjoyX = joystick.getX();
+    logi.leftjoyY = joystick.getY();
+    logi.rightjoyX = joystick.getRx();
+    logi.rightjoyY = joystick.getRY();
+    logi.lefttrigger = joystick.getZ();
+    logi.righttrigger = joystick.getRz();
+    logi.Ybutton = joystick.getButton(4);
+    logi.Xbutton = joystick.getButton(3);
+    logi.Bbutton = joystick.getButton(2);
+    logi.Abutton = joystick.getButton(1);
+    logi.Backbutton = joystick.getButton(7);
+    logi.Startbutton = joystick.getButton(8);
+    
+    // I DONT KNOW WHAT THIS IS, USE getRawData to find what the button is logi.Modebutton = joystick.getButton(8);
+    Serial.println(joystick.getRawData());
+
+    logi.Dpadup = joystick.getHat(0);
+    logi.Dpaddown = joystick.getHat(4);
+    logi.Dpadleft = joystick.getHat(6);
+    logi.Dpadright = joystick.getHat(2);
   }
-  delay(10);
+
+
+  Serial.println(logi);
 }
