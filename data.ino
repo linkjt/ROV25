@@ -27,7 +27,6 @@ bool Bbutton;
 bool Abutton;
 bool Backbutton;
 bool Startbutton;
-bool Modebutton;
 bool Dpadup;
 bool Dpadleft;
 bool Dpadright;
