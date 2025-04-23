@@ -40,7 +40,6 @@ void setup() {
   myusb.begin();
   Serial.println("Waiting for joystick...");
 }
-
 void loop() {
   myusb.Task();
 
@@ -67,5 +66,8 @@ void loop() {
   }
 
 
-  Serial.println(logi);
+  String outputString = String(logi.rightjoyX) + "," + String(logi.rightjoyY) + "," + String(logi.leftjoyX) + "," + String(logi.leftjoyY) + "," +String(logi.lefttrigger) + "," + String(logi.righttrigger) + "," + String(logi.Ybutton) + "," + String(logi.Xbutton) + "," +String(logi.Bbutton) + "," + String(logi.Abutton) + "," + String(logi.Backbutton) + "," + String(logi.Startbutton) + "," +
+ String(logi.Dpadup) + "," + String(logi.Dpaddown) + "," + String(logi.Dpadleft) + "," + String(logi.Dpadright) + "," + "\n"; // Comma between elements, newline at the end
+  Serial.print(outputString);
+  delay(500);
 }
