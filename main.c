@@ -63,6 +63,22 @@ gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+logi.Startbutton));
 gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+logi.Startbutton));
 }
 
+
+int main() {
+    FILE *fptr;
+
+// Open a file in writing mode
+fptr = fopen("log.txt", "w");
+
+  if (gpioInitialise() < 0)
+{
+   fprintf(fptr, "Faileure Initilizing GPIO");
+}
+else
+{
+   fprintf(fptr, "GPIO initilized");
+}
+  fclose(fptr); 
 controller logi;
 
 gpiostart();
@@ -80,7 +96,8 @@ gpioSetMode(ARMPIN2,PI_OUTPUT);
 
 gpioSetMode(HANDCODE,PI_OUTPUT);
 
-int main() {
+
+    
     int uart_fd;
     struct termios options;
     char buffer[MAX_BUFFER_SIZE];
