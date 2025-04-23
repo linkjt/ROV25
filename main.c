@@ -39,13 +39,29 @@ typedef struct {
     bool Abutton;
     bool Backbutton;
     bool Startbutton;
-    bool Modebutton;
     bool Dpadup;
     bool Dpadleft;
     bool Dpadright;
     bool Dpaddown;
 } controller;
+bool servomove(controller logi){
 
+// Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
+
+gpioServo(ROVUP1, 1500+200*(logi.Dpadup)*(1+logi.Startbutton)-200*(logi.Dpaddown)*(1+logi.Startbutton)+50*(logi.Bbutton)-50*(logi.Xbutton));
+gpioServo(ROVUP2, 1500+200*(logi.Dpadup)*(1+logi.Startbutton)-200*(logi.Dpaddown)*(1+logi.Startbutton)+50*(logi.Xbutton)-50*(logi.Bbutton));
+//X movement
+gpioServo(ROVM1, 1500+100*(logi.leftjoyX)*(1+logi.Startbutton)+100*(logi.leftjoyY)*(1+logi.Startbutton)+50*(logi.Ybutton)-50*(logi.Abutton));
+gpioServo(ROVM2, 1500+100*(logi.leftjoyX)*(1+logi.Startbutton)-100*(logi.leftjoyY)*(1+logi.Startbutton)+50*(logi.Ybutton)-50*(logi.Abutton));
+gpioServo(ROVM3, 1500-100*(logi.leftjoyX)*(1+logi.Startbutton)+100*(logi.leftjoyY)*(1+logi.Startbutton)+50*(logi.Ybutton)-50*(logi.Abutton));
+gpioServo(ROVM4, 1500-100*(logi.leftjoyX)*(1+logi.Startbutton)-100*(logi.leftjoyY)*(1+logi.Startbutton)+50*(logi.Ybutton)-50*(logi.Abutton));
+
+gpioServo(HANDCODE, 1500+200*(logi.lefttrigger)*(1+logi.Startbutton)-200*(logi.righttrigger)*(1+logi.Startbutton));
+//fidle around till controls are good
+gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+logi.Startbutton));
+//fidle around till controls are good
+gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+logi.Startbutton));
+}
 
 controller logi;
 
@@ -63,8 +79,6 @@ gpioSetMode(ARMPIN1,PI_OUTPUT);
 gpioSetMode(ARMPIN2,PI_OUTPUT);
 
 gpioSetMode(HANDCODE,PI_OUTPUT);
-
-bool servomove(controller logi, bool fastmode);
 
 int main() {
     int uart_fd;
@@ -132,17 +146,16 @@ int main() {
                         case 9: receivedLogi.Abutton = bool_value; break;
                         case 10: receivedLogi.Backbutton = bool_value; break;
                         case 11: receivedLogi.Startbutton = bool_value; break;
-                        case 12: receivedLogi.Modebutton = bool_value; break;
-                        case 13: receivedLogi.Dpadup = bool_value; break;
-                        case 14: receivedLogi.Dpadleft = bool_value; break;
-                        case 15: receivedLogi.Dpadright = bool_value; break;
-                        case 16: receivedLogi.Dpaddown = bool_value; break;
+                        case 12: receivedLogi.Dpadup = bool_value; break;
+                        case 13: receivedLogi.Dpadleft = bool_value; break;
+                        case 14: receivedLogi.Dpadright = bool_value; break;
+                        case 15: receivedLogi.Dpaddown = bool_value; break;
                         default: fprintf(stderr, "Error: Too many elements received: %s\n", buffer); parse_error = true; break;
                     }
                     i++;
                 }
 
-                if (!parse_error && i == 17) {
+                if (!parse_error && i == 16) {
                     logi = receivedLogi; 
                     printf("Received Controller Data:\n");
                     printf("  RX: %d, RY: %d, LX: %d, LY: %d\n", logi.rightjoyX, logi.rightjoyY, logi.leftjoyX, logi.leftjoyY);
@@ -164,32 +177,11 @@ int main() {
             break;
         }
         usleep(100);
+        servomove(controller logi);
     }
 
     close(uart_fd);
     return 0;
 }
 
-bool servomove(controller logi, bool fastmode){
-//fast and slow mode
-if((fastslowmode & logi.Startbutton)||(!fastslowmode & logi.Startbutton)){
-fastslowmode = !fastslowmode;
-logi.Startbutton = false;
-}
 
-// Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
-
-gpioServo(ROVUP1, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
-gpioServo(ROVUP2, 1500+200*(logi.Dpadup)*(1+fastslowmode)-200*(logi.Dpaddown)*(1+fastslowmode));
-//X movement
-gpioServo(ROVM1, 1500+100*(logi.leftjoyX)*(1+fastslowmode)+100*(logi.leftjoyY)*(1+fastslowmode)+50*(logi.Ybutton)-50*(logi.Abutton));
-gpioServo(ROVM2, 1500+100*(logi.leftjoyX)*(1+fastslowmode)-100*(logi.leftjoyY)*(1+fastslowmode)+50*(logi.Ybutton)-50*(logi.Abutton));
-gpioServo(ROVM3, 1500-100*(logi.leftjoyX)*(1+fastslowmode)+100*(logi.leftjoyY)*(1+fastslowmode)+50*(logi.Ybutton)-50*(logi.Abutton));
-gpioServo(ROVM4, 1500-100*(logi.leftjoyX)*(1+fastslowmode)-100*(logi.leftjoyY)*(1+fastslowmode)+50*(logi.Ybutton)-50*(logi.Abutton));
-
-gpioServo(HANDCODE, 1500+200*(logi.lefttrigger)*(1+fastslowmode)-200*(logi.righttrigger)*(1+fastslowmode));
-//fidle around till controls are good
-gpioServo(ARMPIN1, 1500+logi.rightjoyY*10*(1+fastslowmode));
-//fidle around till controls are good
-gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+fastslowmode));
-}
