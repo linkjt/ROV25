@@ -45,6 +45,22 @@ typedef struct {
     bool Dpadright;
     bool Dpaddown;
 } controller;
+struct SensorData {
+  int id;
+  int temperature;
+  bool alert;
+};
+
+SensorData myData = {123, 25, true};
+
+void loop() {
+  SensorData data = {random(200), analogRead(A0), (random(100) > 50)};
+  String outputString = String(data.id) + "," +
+                        String(data.temperature) + "," +
+                        String(data.alert) + "\n"; // Comma between elements, newline at the end
+  Serial.print(outputString);
+  delay(1000);
+}
 
 controller logi;
 
