@@ -161,7 +161,7 @@ int main() {
                     printf("  RX: %d, RY: %d, LX: %d, LY: %d\n", logi.rightjoyX, logi.rightjoyY, logi.leftjoyX, logi.leftjoyY);
                     printf("  LT: %d, RT: %d\n", logi.lefttrigger, logi.righttrigger);
                     printf("  Y: %d, X: %d, B: %d, A: %d\n", logi.Ybutton, logi.Xbutton, logi.Bbutton, logi.Abutton);
-                    printf("  Back: %d, Start: %d, Mode: %d\n", logi.Backbutton, logi.Startbutton, logi.Modebutton);
+                    printf("  Back: %d, Start: %d, Mode: %d\n", logi.Backbutton, logi.Startbutton, logi.Startbutton);
                     printf("  DU: %d, DL: %d, DR: %d, DD: %d\n", logi.Dpadup, logi.Dpadleft, logi.Dpadright, logi.Dpaddown);
                 } else if (!parse_error) {
                     fprintf(stderr, "Error: Incorrect number of controller elements received: %s (%d received, expected 17)\n", buffer, i);
@@ -177,7 +177,7 @@ int main() {
             break;
         }
         usleep(100);
-        servomove(controller logi);
+        servomove(logi);
     }
 
     close(uart_fd);
