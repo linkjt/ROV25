@@ -9,6 +9,8 @@
 #include <termios.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <linux/joystick.h>
+
 
 #define UART_DEVICE "/dev/ttyS0" // if Uart not working, switch to AMA0, i dunno
 #define BAUD_RATE B115200
@@ -25,116 +27,6 @@
 #define ARMPIN2 11
 
 #define HANDCODE 9
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <linux/joystick.h>
-#include <errno.h>
-
-// Structure to hold the state of your Logitech controller
-typedef struct {
-    int leftjoyX;
-    int leftjoyY;
-    int rightjoyX;
-    int rightjoyY;
-    int lefttrigger;
-    int righttrigger;
-    int Ybutton;
-    int Xbutton;
-    int Bbutton;
-    int Abutton;
-    int Backbutton;
-    int Startbutton;
-    int Modebutton; // You'll need to identify this
-    int Dpadup;     // Typically -1 to 1 for hats
-    int Dpaddown;
-    int Dpadleft;
-    int Dpadright;
-} LogitechControllerState;
-
-// Function to read and update the controller state
-int update_logitech_state(int fd, LogitechControllerState *state) {
-    struct js_event js;
-    ssize_t bytes_read;
-
-    bytes_read = read(fd, &js, sizeof(js));
-
-    if (bytes_read == sizeof(js)) {
-        if (js.type & JS_EVENT_AXIS) {
-            switch (js.number) {
-                case 0: state->leftjoyX = js.value; break;   // Typically Left Stick X
-                case 1: state->leftjoyY = -js.value; break;  // Typically Left Stick Y (inverted)
-                case 2: state->rightjoyX = js.value; break;  // Typically Right Stick X
-                case 3: state->rightjoyY = -js.value; break; // Typically Right Stick Y (inverted)
-                case 4: state->lefttrigger = js.value; break; // Typically Left Trigger
-                case 5: state->righttrigger = js.value; break;// Typically Right Trigger
-                // Add more axis mappings as needed based on your controller
-            }
-        } else if (js.type & JS_EVENT_BUTTON) {
-            switch (js.number) {
-                case 3: state->Ybutton = js.value; break;     // Button 4 (0-indexed)
-                case 2: state->Xbutton = js.value; break;     // Button 3
-                case 1: state->Bbutton = js.value; break;     // Button 2
-                case 0: state->Abutton = js.value; break;     // Button 1
-                case 6: state->Backbutton = js.value; break;  // Button 7
-                case 7: state->Startbutton = js.value; break; // Button 8
-                case 8: state->Modebutton = js.value; break;  // You'll need to verify this
-                // Add more button mappings as needed
-            }
-        } else if (js.type & JS_EVENT_HAT) {
-            switch (js.number) {
-                case 0: // First hat (D-pad)
-                    state->Dpadup = (js.value == -1 || js.value == -3);   // Up or Up-Left/Up-Right
-                    state->Dpaddown = (js.value == 1 || js.value == 3);    // Down or Down-Left/Down-Right
-                    state->Dpadleft = (js.value == -1 || js.value == -2);  // Left or Up-Left/Down-Left
-                    state->Dpadright = (js.value == 1 || js.value == 2);   // Right or Up-Right/Down-Right
-                    break;
-                // Handle more hats if your controller has them
-            }
-        }
-        return 1; // Event processed
-    } else if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-        return 0; // No new event
-    } else {
-        perror("Error reading joystick event");
-        return -1; // Error
-    }
-}
-
-int main() {
-    int fd;
-    LogitechControllerState logi_state = {0}; // Initialize state
-    const char *device_path = "/dev/input/js0"; // Adjust as needed
-
-    fd = open(device_path, O_RDONLY | O_NONBLOCK);
-    if (fd == -1) {
-        perror("Error opening joystick");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Reading Logitech controller state...\n");
-
-    while (1) {
-        if (update_logitech_state(fd, &logi_state) > 0) {
-            // You can now access the controller state through the logi_state struct
-            printf("Left Joy: X=%d, Y=%d\n", logi_state.leftjoyX, logi_state.leftjoyY);
-            printf("Right Joy: X=%d, Y=%d\n", logi_state.rightjoyX, logi_state.rightjoyY);
-            printf("Triggers: L=%d, R=%d\n", logi_state.lefttrigger, logi_state.righttrigger);
-            printf("Buttons: A=%d, B=%d, X=%d, Y=%d, Back=%d, Start=%d, Mode=%d\n",
-                   logi_state.Abutton, logi_state.Bbutton, logi_state.Xbutton, logi_state.Ybutton,
-                   logi_state.Backbutton, logi_state.Startbutton, logi_state.Modebutton);
-            printf("D-Pad: Up=%d, Down=%d, Left=%d, Right=%d\n",
-                   logi_state.Dpadup, logi_state.Dpaddown, logi_state.Dpadleft, logi_state.Dpadright);
-            printf("--------------------\n");
-        }
-        usleep(50000); // Check for updates every 50 milliseconds
-    }
-
-    close(fd);
-    return 0;
-}
 
 typedef struct {
     int rightjoyX;
@@ -153,7 +45,58 @@ typedef struct {
     bool Dpadleft;
     bool Dpadright;
     bool Dpaddown;
-} controller;
+} controller; //controller structure used
+
+// Function to read and update the controller state, just get based on the type of event and event number
+int update_logitech_state(int fd, controller *state) {
+    struct js_event js;
+    ssize_t bytes_read;
+
+    bytes_read = read(fd, &js, sizeof(js));
+
+    if (bytes_read == sizeof(js)) {
+        // type is event axis
+        if (js.type & JS_EVENT_AXIS) {
+            switch (js.number) {
+                case 0: state->leftjoyX = js.value; break;   
+                case 1: state->leftjoyY = -js.value; break;
+                case 2: state->rightjoyX = js.value; break;
+                case 3: state->rightjoyY = -js.value; break;
+                case 4: state->lefttrigger = js.value; break;
+                case 5: state->righttrigger = js.value; break;
+            }
+        } else if (js.type & JS_EVENT_BUTTON) {
+            switch (js.number) {
+                // button values, have type event button 
+                case 3: state->Ybutton = js.value; break;    
+                case 2: state->Xbutton = js.value; break;   
+                case 1: state->Bbutton = js.value; break;     
+                case 0: state->Abutton = js.value; break;     
+                case 6: state->Backbutton = js.value; break; 
+                case 7: state->Startbutton = js.value; break; 
+            }
+            //Dpad values, all on number
+        } else if (js.type & JS_EVENT_HAT) {
+            switch (js.number) {
+                case 0:
+                    state->Dpadup = (js.value == -1 || js.value == -3); 
+                    state->Dpaddown = (js.value == 1 || js.value == 3);    
+                    state->Dpadleft = (js.value == -1 || js.value == -2);
+                    state->Dpadright = (js.value == 1 || js.value == 2);
+                    break;
+            }
+        }
+        return 1;
+        //error handeling
+    } else if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+        return 0;
+    } else {
+        perror("Error reading joystick event");
+        return -1;
+    }
+}
+
+
 void servomove(controller logi){
 
 // Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
@@ -177,7 +120,15 @@ gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+logi.Startbutton));
 int main() {
 gpioInitialise();
 
+int fd;
+    controller logi_state = {0};
+    const char *device_path = "/dev/input/js0"; // MAY NEED TO BE CHANGED
 
+    fd = open(device_path, O_RDONLY | O_NONBLOCK);
+    if (fd == -1) {
+        perror("Error opening joystick");
+        exit(EXIT_FAILURE);
+    }
 controller logi;
 
 gpioSetMode(ROVUP1,PI_OUTPUT);
@@ -196,7 +147,7 @@ gpioSetMode(HANDCODE,PI_OUTPUT);
 
 
     
-    int uart_fd;
+/*    int uart_fd;
     struct termios options;
     char buffer[MAX_BUFFER_SIZE];
     int buffer_index = 0;
@@ -227,8 +178,9 @@ gpioSetMode(HANDCODE,PI_OUTPUT);
     }
 
     printf("Listening for controller data on %s at %d baud...\n", UART_DEVICE, BAUD_RATE);
-
+*/
     while (1) {
+        /*
         int bytes_read = read(uart_fd, buffer + buffer_index, MAX_BUFFER_SIZE - 1 - buffer_index);
         if (bytes_read > 0) {
             buffer_index += bytes_read;
@@ -292,10 +244,15 @@ gpioSetMode(HANDCODE,PI_OUTPUT);
             break;
         }
         usleep(100);
-        servomove(logi);
+        */
+        if (update_logitech_state(fd, &logi_state) > 0) {
+            servomove(logi);
+        }
+        usleep(50000);
     }
 
-    close(uart_fd);
+    //close(uart_fd);
+    close(fd);
     return 0;
 }
 
