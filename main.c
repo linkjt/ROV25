@@ -1,4 +1,4 @@
-#include "gpio.h"
+#include <pigpio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <stdbool.h>
 
-#define UART_DEVICE "/dev/ttyS0"
+#define UART_DEVICE "/dev/ttyS0" // if Uart not working, switch to AMA0, i dunno
 #define BAUD_RATE B115200
 #define MAX_BUFFER_SIZE 512 // Increased buffer size to accommodate more data
 
@@ -24,7 +24,7 @@
 #define ARMPIN1 10
 #define ARMPIN2 11
 
-#define HANDCODE 12
+#define HANDCODE 9
 
 typedef struct {
     int rightjoyX;
@@ -44,7 +44,7 @@ typedef struct {
     bool Dpadright;
     bool Dpaddown;
 } controller;
-bool servomove(controller logi){
+void servomove(controller logi){
 
 // Maybe use a switch case, not rly sure rn, I JUST NEED TO KNOW WIREING
 
@@ -65,23 +65,11 @@ gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+logi.Startbutton));
 
 
 int main() {
-    FILE *fptr;
+gpioInitialise();
 
-// Open a file in writing mode
-fptr = fopen("log.txt", "w");
 
-  if (gpioInitialise() < 0)
-{
-   fprintf(fptr, "Faileure Initilizing GPIO");
-}
-else
-{
-   fprintf(fptr, "GPIO initilized");
-}
-  fclose(fptr); 
 controller logi;
 
-gpiostart();
 gpioSetMode(ROVUP1,PI_OUTPUT);
 gpioSetMode(ROVUP2,PI_OUTPUT);
 
