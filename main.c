@@ -119,18 +119,21 @@ gpioServo(ARMPIN2, 1500+logi.rightjoyX*10*(1+logi.Startbutton));
 
 int main() {
 gpioInitialise();
+    // U may get an error syaing that GPIO failed to initlazise, this can be for multiple reasons but the most common is that it failed due to the fact that the robot 
+    // wasn't able to latch on to the current process so run sudo killall pigpiod
+    // this kills the dameon process and now u can run the code again
 
 int fd;
     controller logi_state = {0};
     const char *device_path = "/dev/input/js0"; // MAY NEED TO BE CHANGED
-
+    // If wegetting an error intilaizing USB run, sudo apt install evtest
+    // then run sudo evtest and it will show all current USB deivces so make sure that you remeber the Logi tech's one and then change this value to match ts
     fd = open(device_path, O_RDONLY | O_NONBLOCK);
     if (fd == -1) {
         perror("Error opening joystick");
         exit(EXIT_FAILURE);
     }
 controller logi;
-
 gpioSetMode(ROVUP1,PI_OUTPUT);
 gpioSetMode(ROVUP2,PI_OUTPUT);
 
