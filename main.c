@@ -183,6 +183,31 @@ gpioSetMode(HANDCODE,PI_OUTPUT);
     printf("Listening for controller data on %s at %d baud...\n", UART_DEVICE, BAUD_RATE);
 */
     while (1) {
+
+    controller.rightjoyX =0;
+    controller.rightjoyY =0;
+    controller.leftjoyX =0;
+    controller.leftjoyY =0;
+    controller.lefttrigger =0;
+    controller.righttrigger =0;
+    controller.Ybutton =false;
+    controller.Xbutton =false;
+    controller.Bbutton =false;
+    controller.Abutton =false;
+    controller.Backbutton =false;
+    controller.Startbutton =false;
+    controller.Dpadup =false;
+    controller.Dpadleft =false;
+    controller.Dpadright =false;
+    controller.Dpaddown =false;
+
+
+
+
+
+
+
+        
         /*
         int bytes_read = read(uart_fd, buffer + buffer_index, MAX_BUFFER_SIZE - 1 - buffer_index);
         if (bytes_read > 0) {
